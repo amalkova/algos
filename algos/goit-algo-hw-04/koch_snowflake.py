@@ -8,23 +8,24 @@ Task 2. Сніжинка Коха (гібридний режим).
    python3 koch_snowflake.py
    → LEVEL = 3, OUTFILE = ./koch_snowflake_level3.png
 
-2) CLI-режим (для перевірки ментором):
+2) CLI-режим (для перевірки за критеріями):
    python3 koch_snowflake.py --level 5 --outfile myflake.png
 """
+
 from __future__ import annotations
 from math import sqrt
 from pathlib import Path
 import sys
 
-# мʼяке повідомлення, якщо matplotlib не встановлено
 try:
     import matplotlib.pyplot as plt
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     print("❌ Не знайдено matplotlib. Встанови: pip3 install matplotlib")
     raise
 
 AUTO_LEVEL = 3
 AUTO_OUTFILE = Path(__file__).parent / f"koch_snowflake_level{AUTO_LEVEL}.png"
+
 
 def koch_curve(p1: complex, p2: complex, level: int) -> list[complex]:
     if level == 0:
@@ -40,6 +41,7 @@ def koch_curve(p1: complex, p2: complex, level: int) -> list[complex]:
         + koch_curve(t, p2, level - 1)
     )
 
+
 def snowflake(level: int) -> list[complex]:
     a, b, c = complex(0, 0), complex(1, 0), complex(0.5, sqrt(3) / 2)
     return (
@@ -48,8 +50,9 @@ def snowflake(level: int) -> list[complex]:
         + koch_curve(c, a, level)
     )
 
-def parse_args_or_none():
-    """Якщо аргументів немає — повертає (None, None) для авто-режиму."""
+
+def parse_args_or_none() -> tuple[int | None, Path | None]:
+    """Повертає (level, outfile) для CLI; якщо аргументів немає — (None, None)."""
     if len(sys.argv) == 1:
         return None, None
     import argparse
@@ -61,7 +64,8 @@ def parse_args_or_none():
     outfile = Path(args.outfile) if args.outfile else Path(__file__).parent / f"koch_snowflake_level{level}.png"
     return level, outfile
 
-def render_and_save(level: int, outfile: Path):
+
+def render_and_save(level: int, outfile: Path) -> None:
     pts = snowflake(level)
     xs, ys = [z.real for z in pts], [z.imag for z in pts]
     plt.figure(figsize=(6, 6))
@@ -69,17 +73,19 @@ def render_and_save(level: int, outfile: Path):
     plt.plot(xs + [xs[0]], ys + [ys[0]], linewidth=1)
     outfile.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(outfile, dpi=200, bbox_inches="tight", pad_inches=0)
-    print(f"✅ Saved: {outfile}")
+    print(f"✅ Saved: {outfile}", flush=True)
 
-def main():
+
+def main() -> None:
     level, outfile = parse_args_or_none()
     if level is None:
         # авто-режим
         level, outfile = AUTO_LEVEL, AUTO_OUTFILE
-        print(f"[mode] auto | level={level} | outfile={outfile}")
+        print(f"[mode] auto | level={level} | outfile={outfile}", flush=True)
     else:
-        print(f"[mode] cli  | level={level} | outfile={outfile}")
+        print(f"[mode] cli  | level={level} | outfile={outfile}", flush=True)
     render_and_save(level, outfile)
+
 
 if __name__ == "__main__":
     main()

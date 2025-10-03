@@ -1,36 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Завдання 1 (наднадійний режим):
-- Без GUI, без input.
-- SRC = ~/Downloads/test_src (створюється з демо-файлами, якщо нема).
-- DEST = ./dist поруч зі скриптом.
-- Докладний консольний лог, щоб було видно, що саме відбувається.
+Task 1. Рекурсивне сортування файлів за розширенням.
+
+Режими запуску:
+1) Режим перевірки (критерії ДЗ) — з аргументами:
+   python3 sort_files.py SRC [DEST]
+   де SRC — обов'язково; DEST — опційно (default=./dist)
+
+2) Авто-режим (без твоєї участі) — без аргументів:
+   python3 sort_files.py
+   → SRC = ~/Downloads/test_src (буде створено демо-файли, якщо немає)
+     DEST = ./dist (поруч зі скриптом)
 """
+
 from __future__ import annotations
+import argparse
+import shutil
 from pathlib import Path
 from collections import Counter
-import shutil
 import sys
 
-SRC = Path("~/Downloads/test_src").expanduser()
-DEST = Path(__file__).parent / "dist"
+AUTO_SRC  = Path("~/Downloads/test_src").expanduser()
+AUTO_DEST = Path(__file__).parent / "dist"
 
-def log(msg: str):
-    print(msg, flush=True)
-
-def ensure_demo_src(src: Path) -> Path:
-    if not src.exists():
-        log(f"[init] Створю демо-набір у: {src}")
-        src.mkdir(parents=True, exist_ok=True)
-        (src / "file1.txt").write_text("Hello text\n", encoding="utf-8")
-        (src / "script.py").write_text("print('hi')\n", encoding="utf-8")
-        (src / "doc.pdf").write_text("%PDF-1.4\n", encoding="utf-8")
-        (src / "image.jpg").touch()
-        (src / "README").write_text("no extension\n", encoding="utf-8")
-    else:
-        log(f"[ok] Знайшов SRC: {src}")
-    return src
+def is_subpath(child: Path, parent: Path) -> bool:
+    try:
+        cr, pr = child.resolve(), parent.resolve()
+        return pr in cr.parents
+    except Exception:
+        return False
 
 def safe_copy(src_file: Path, dst_dir: Path):
     dst_dir.mkdir(parents=True, exist_ok=True)
@@ -45,49 +44,85 @@ def safe_copy(src_file: Path, dst_dir: Path):
                 break
             i += 1
     shutil.copy2(src_file, target)
-    log(f"[copy] {src_file}  ->  {target}")
+    print(f"[copy] {src_file} -> {target}")
 
 def process_dir(src: Path, dest_root: Path) -> Counter:
     stats = Counter()
     for entry in src.iterdir():
-        if entry.is_symlink():
-            log(f"[skip] symlink: {entry}")
-            continue
-        if entry.is_dir():
-            stats.update(process_dir(entry, dest_root))
-        elif entry.is_file():
-            ext = entry.suffix.lower().lstrip(".") or "no_ext"
-            safe_copy(entry, dest_root / ext)
-            stats[ext] += 1
-        else:
-            log(f"[skip] невідомий тип: {entry}")
+        try:
+            if entry.is_symlink():
+                print(f"[skip] symlink: {entry}")
+                continue
+            if entry.is_dir():
+                stats.update(process_dir(entry, dest_root))
+            elif entry.is_file():
+                ext = entry.suffix.lower().lstrip(".") or "no_ext"
+                safe_copy(entry, dest_root / ext)
+                stats[ext] += 1
+            else:
+                print(f"[skip] невідомий тип: {entry}")
+        except Exception as e:
+            print(f"[err] {entry}: {e}")
     return stats
 
+def ensure_demo_src(src: Path) -> Path:
+    if not src.exists():
+        print(f"[init] Створю демо-набір у: {src}")
+        src.mkdir(parents=True, exist_ok=True)
+        (src / "file1.txt").write_text("Hello text\n", encoding="utf-8")
+        (src / "script.py").write_text("print('hi')\n", encoding="utf-8")
+        (src / "doc.pdf").write_text("%PDF-1.4\n", encoding="utf-8")
+        (src / "image.jpg").touch()
+        (src / "README").write_text("no extension\n", encoding="utf-8")
+    return src
+
+def parse_args_or_none():
+    """Пробуємо розпарсити CLI. Якщо аргументів немає — повертаємо None, None (авто-режим)."""
+    # якщо немає додаткових аргументів, окрім самого скрипта — авто-режим
+    if len(sys.argv) == 1:
+        return None, None
+    p = argparse.ArgumentParser(description="Recursive file sorter by extension")
+    p.add_argument("src", type=Path, help="Шлях до вихідної директорії")
+    p.add_argument("dest", type=Path, nargs="?", default=Path("dist"),
+                   help="Шлях до директорії призначення (default=./dist)")
+    args = p.parse_args()
+    return args.src, args.dest
+
 def main():
-    print("=== GOIT HW-04 | Task 1 | auto-mode ===", flush=True)
-    try:
-        src = ensure_demo_src(SRC)
-        dest = DEST
-        if src == dest or str(dest).startswith(str(src)) or str(src).startswith(str(dest)):
-            print("❌ SRC і DEST перетинаються. Зміни DEST у коді.", flush=True)
-            sys.exit(1)
-        dest.mkdir(parents=True, exist_ok=True)
-        print(f"[paths] SRC:  {src.resolve()}", flush=True)
-        print(f"[paths] DEST: {dest.resolve()}", flush=True)
-        print("[run] Починаю рекурсивне копіювання...\n", flush=True)
-        stats = process_dir(src, dest)
-        total = sum(stats.values())
-        print("\n=== Результат ===", flush=True)
-        if total == 0:
-            print("⚠️  У вихідній директорії файлів не знайдено.", flush=True)
-        else:
-            for ext, cnt in sorted(stats.items()):
-                print(f"  {ext:>8}: {cnt}", flush=True)
-            print(f"Σ Разом: {total}", flush=True)
-        print(f"\n[done] Перевір папку: {dest.resolve()}", flush=True)
-    except Exception as e:
-        print(f"❌ Помилка: {e}", flush=True)
-        raise
+    src, dest = parse_args_or_none()
+
+    if src is None and dest is None:
+        # Авто-режим для зручного запуску без твоєї участі
+        src, dest = ensure_demo_src(AUTO_SRC), AUTO_DEST
+        print("[mode] auto")
+    else:
+        print("[mode] cli")
+
+    if not src.is_dir():
+        print("❌ Вихідний шлях не існує або це не директорія")
+        return
+
+    # Захист від самокопіювання
+    if src == dest or is_subpath(dest, src) or is_subpath(src, dest):
+        print("❌ Шляхи src та dest перетинаються. Обери іншу директорію призначення.")
+        return
+
+    dest.mkdir(parents=True, exist_ok=True)
+    print(f"[src]  {src.resolve()}")
+    print(f"[dest] {dest.resolve()}")
+    print("[run] Починаю рекурсивне копіювання...\n")
+
+    stats = process_dir(src, dest)
+
+    print("\n=== Підсумок ===")
+    total = sum(stats.values())
+    if total == 0:
+        print("⚠️ Файлів не знайдено")
+    else:
+        for ext, cnt in sorted(stats.items()):
+            print(f"{ext:>8}: {cnt}")
+        print(f"Σ Разом: {total}")
+    print(f"\n[done] Перевір папку: {dest.resolve()}")
 
 if __name__ == "__main__":
     main()

@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Завдання 3. Порівняння insertion sort, merge sort та timsort.
-Результати друкуються в консоль і зберігаються у results.csv
+Task 3. Порівняння insertion sort, merge sort та timsort.
+
+Режими:
+1) Авто-режим (без аргументів):
+   python3 sort_bench.py
+   → sizes=[2000,5000,10000], repeats=3, results.csv збережеться поруч
+
+2) CLI-режим:
+   python3 sort_bench.py --sizes 1000 2000 3000 --repeats 5
 """
+
 from __future__ import annotations
-import csv, random, timeit
+import csv, random, timeit, sys, argparse
 from statistics import mean
 from typing import List, Callable, Iterable
 from pathlib import Path
 
-SIZES   = [2000, 5000, 10000]   # можна змінити
-REPEATS = 3                     # кількість повторів для усереднення
+# дефолтні параметри (для авто-режиму)
+AUTO_SIZES = [2000, 5000, 10000]
+AUTO_REPEATS = 3
 CSV_PATH = Path(__file__).parent / "results.csv"
 
 # ---------- Алгоритми ----------
@@ -86,8 +95,21 @@ def save_csv(rows, path: Path):
         w = csv.DictWriter(f, fieldnames=["n","dataset","algo","time_s_avg"])
         w.writeheader(); w.writerows(rows)
 
+def parse_args_or_auto():
+    if len(sys.argv) == 1:
+        return AUTO_SIZES, AUTO_REPEATS
+    ap = argparse.ArgumentParser(description="Benchmark sorting algorithms")
+    ap.add_argument("--sizes", type=int, nargs="+", default=AUTO_SIZES,
+                    help="Розміри масивів (наприклад: --sizes 1000 2000 3000)")
+    ap.add_argument("--repeats", type=int, default=AUTO_REPEATS,
+                    help="Кількість повторів для усереднення (default=3)")
+    args = ap.parse_args()
+    return args.sizes, args.repeats
+
 def main():
-    rows = bench_suite(SIZES, REPEATS)
+    sizes, repeats = parse_args_or_auto()
+    print(f"[mode] sizes={sizes} | repeats={repeats}")
+    rows = bench_suite(sizes, repeats)
     print_table(rows)
     save_csv(rows, CSV_PATH)
     print(f"\n✅ Saved CSV: {CSV_PATH}")

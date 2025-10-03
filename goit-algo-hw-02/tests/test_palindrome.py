@@ -11,7 +11,6 @@ if SRC not in sys.path:
 
 from palindrome import is_palindrome  # noqa: E402
 
-
 @pytest.mark.parametrize(
     "text,expected",
     [

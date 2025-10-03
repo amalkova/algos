@@ -1,7 +1,7 @@
 from src.request_queue import demo_loop
 from src.palindrome import is_palindrome
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     # Демо Завдання 1
     demo_loop(ticks=20, gen_minmax=(0, 3), seed=7)
 

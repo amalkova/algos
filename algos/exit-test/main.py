@@ -1,61 +1,58 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-GOIT Final Project — launcher
 
-Інтерактивне меню для запуску завдань:
-  1) Однозв’язний список: reverse, merge-sort, merge two sorted
-  2) Рекурсія: фрактал «дерево Піфагора» (PNG/показ)
-  3) Дейкстра з бінарною купою (демо-граф)
-  4) Візуалізація бінарної купи (PNG/показ)
-  5) Візуалізація обходів BFS/DFS (PNG/показ) — без рекурсії
-  6) Вибір їжі: greedy vs DP (0/1 knapsack)
-  7) Монте-Карло: кидки двох кубиків (таблиця, CSV/PNG опційно)
+#GOIT Final Project — launcher
 
-Порада: встановити залежності для візуалізацій:
-    pip install matplotlib networkx numpy
-(для інших — стандартної бібліотеки достатньо)
-"""
+#Інтерактивне меню для запуску завдань:
+#  1) Однозв’язний список: reverse, merge-sort, merge two sorted
+#  2) Рекурсія: фрактал «дерево Піфагора» (PNG/показ)
+#  3) Дейкстра з бінарною купою (демо-граф)
+#  4) Візуалізація бінарної купи (PNG/показ)
+#  5) Візуалізація обходів BFS/DFS (PNG/показ) — без рекурсії
+#  6) Вибір їжі: greedy vs DP (0/1 knapsack)
+#  7) Монте-Карло: кидки двох кубиків (таблиця, CSV/PNG опційно)
+
+#Порада: встановити залежності для візуалізацій:
+#    pip install matplotlib networkx numpy
+#(для інших — стандартної бібліотеки достатньо)
 
 from __future__ import annotations
 import os
 from pathlib import Path
 
-# === Імпорти з файлів завдань ===
-# Task 1
+#Імпорти з файлів завдань
+#Task 1
 import task1_linked_list as t1
 
-# Task 2
+#Task 2
 from task2_pythagoras_tree import draw_pythagoras_tree
 
-# Task 3
+#Task 3
 from task3_dijkstra_heap import make_graph, dijkstra_heap, reconstruct_path, DEMO_EDGES
 
-# Task 4
+#Task 4
 from task4_heap_visualize import build_heap_tree, draw_tree as draw_heap_tree
 
-# Task 5
+#Task 5
 from task5_tree_traversal_viz import (
     build_tree_from_array, traverse_bfs, traverse_dfs,
     colorize_by_order, draw_tree as draw_traversal_tree,
     parse_tree_string
 )
 
-# Task 6
+#Task 6
 from task6_food_selection import greedy_algorithm, dynamic_programming, DEFAULT_ITEMS, _format_table as fmt_food_table
 
-# Task 7
+#Task 7
 from task7_dice_monte_carlo import (
     simulate_dice_rolls, frequencies_to_probs, theoretical_probs,
     format_table as fmt_dice_table, overall_errors, plot_probs
 )
 from collections import Counter
 
-
 OUTDIR = Path("out")
 
-
-# ----------- helpers (input) -----------
+#helpers (input)
 
 def ask(prompt: str, default: str | None = None) -> str:
     s = input(f"{prompt}" + (f" [{default}]" if default is not None else "") + ": ").strip()
@@ -95,16 +92,14 @@ def ask_bool(prompt: str, default: bool = False) -> bool:
     s = ask(prompt + " (y/n)", "y" if default else "n").lower()
     return s in ("y", "yes", "д", "так", "t", "true", "1")
 
-
 def ensure_outdir() -> Path:
     OUTDIR.mkdir(parents=True, exist_ok=True)
     return OUTDIR
 
-
-# ----------- Task 1 runner -----------
+#Task 1 runner
 
 def run_task1() -> None:
-    print("\n=== Завдання 1: Однозв’язний список ===")
+    print("\nЗавдання 1: Однозв’язний список")
     data = [7, 3, 9, 1, 5, 8, 10]
     head = t1.build_list(data)
     print("Початковий:", t1.to_pylist(head))
@@ -121,11 +116,10 @@ def run_task1() -> None:
     merged = t1.merge_two_sorted(a, b)
     print("Злиття двох відсортованих:", t1.to_pylist(merged))
 
-
-# ----------- Task 2 runner -----------
+#Task 2 runner
 
 def run_task2() -> None:
-    print("\n=== Завдання 2: Дерево Піфагора ===")
+    print("\nЗавдання 2: Дерево Піфагора")
     level = ask_int("Рівень рекурсії", default=9, min_val=1)
     angle = ask_float("Кут (градуси)", default=45.0, min_val=1.0, max_val=89.9)
     show = ask_bool("Показати вікно графіка", default=False)
@@ -135,11 +129,10 @@ def run_task2() -> None:
     if saved:
         print(f"✅ Збережено: {saved}")
 
-
-# ----------- Task 3 runner -----------
+#Task 3 runner
 
 def run_task3() -> None:
-    print("\n=== Завдання 3: Дейкстра з бінарною купою ===")
+    print("\nЗавдання 3: Дейкстра з бінарною купою")
     directed = ask_bool("Орієнтований граф?", default=False)
 
     # Створюємо демо-граф і показуємо, які вершини доступні
@@ -175,8 +168,7 @@ def run_task3() -> None:
         else:
             print(f"\nШлях {start}→{goal}: недосяжно")
 
-
-# ----------- Task 4 runner -----------
+#Task 4 runner
 
 def _parse_heap_string(s: str) -> list[float]:
     parts = s.replace(",", " ").split()
@@ -189,7 +181,7 @@ def _parse_heap_string(s: str) -> list[float]:
     return out
 
 def run_task4() -> None:
-    print("\n=== Завдання 4: Візуалізація бінарної купи ===")
+    print("\nЗавдання 4: Візуалізація бінарної купи")
     mode_min = ask_bool("Це min-heap? (інакше max)", default=True)
     heap_str = ask("Список значень (порожньо — дефолт '10 14 20 28 18 25 32')", "")
     if heap_str.strip():
@@ -200,11 +192,11 @@ def run_task4() -> None:
     show_index = ask_bool("Показувати індекси у вузлах?", default=False)
     show = ask_bool("Показати вікно графіка?", default=False)
 
-    # Використаємо CLI-функції з task4 через імпортовані будівельники
+    #Використаємо CLI-функції з task4 через імпортовані будівельники
     if do_heapify:
-        # Легка нормалізація через власний main — тут не тягнемо heapify-обгортки,
-        # просто вкажемо користувачу про виділення порушень червоним.
-        print("  ⚠️  heapify не застосовано в main.py; порушення heap-властивості будуть підсвічені томатовим.")
+        #Легка нормалізація через власний main — тут не тягнемо heapify-обгортки,
+        #просто вкажемо користувачу про виділення порушень червоним.
+        print("⚠️ heapify не застосовано в main.py; порушення heap-властивості будуть підсвічені томатовим.")
     root = build_heap_tree(arr, mode="min" if mode_min else "max", show_index=show_index, cmap_name="Blues")
     if root is None:
         print("Порожній масив — нема що малювати.")
@@ -214,11 +206,10 @@ def run_task4() -> None:
     draw_heap_tree(root, title=f"Бінарна купа ({'min' if mode_min else 'max'})", outfile=str(outfile), show=show)
     print(f"✅ Збережено: {outfile}")
 
-
-# ----------- Task 5 runner -----------
+#Task 5 runner
 
 def run_task5() -> None:
-    print("\n=== Завдання 5: Обходи дерева (BFS/DFS) ===")
+    print("\nЗавдання 5: Обходи дерева (BFS/DFS)")
     mode = "bfs" if ask_bool("Обхід BFS? (інакше DFS)", default=True) else "dfs"
     tree_str = ask("Елементи дерева (напр. '0 4 1 5 10 3' або 'A B C D None E')", "")
     if tree_str.strip():
@@ -242,11 +233,10 @@ def run_task5() -> None:
     draw_traversal_tree(root, title=f"Обхід {mode.upper()}", outfile=str(outfile), show=show)
     print(f"✅ Збережено: {outfile}")
 
-
-# ----------- Task 6 runner -----------
+#Task 6 runner
 
 def _print_food_solution(title: str, chosen, total_cost: int, total_cal: int, budget: int) -> None:
-    print(f"\n=== {title} ===")
+    print(f"\n{title}")
     if not chosen:
         print("Нічого не обрано (або замалий бюджет).")
         return
@@ -258,18 +248,17 @@ def _print_food_solution(title: str, chosen, total_cost: int, total_cal: int, bu
 def run_task6() -> None:
     print("\n=== Завдання 6: Їжа — greedy vs DP ===")
     budget = ask_int("Бюджет", default=100, min_val=0)
-    # Використаємо вбудований набір
+    #Використаємо вбудований набір
     chosen, tc, tcal = greedy_algorithm(DEFAULT_ITEMS, budget)
     _print_food_solution("Жадібний алгоритм (cal/cost)", chosen, tc, tcal, budget)
 
     chosen2, tc2, tcal2 = dynamic_programming(DEFAULT_ITEMS, budget)
     _print_food_solution("Динамічне програмування (0/1 knapsack)", chosen2, tc2, tcal2, budget)
 
-
-# ----------- Task 7 runner -----------
+#Task 7 runner
 
 def run_task7() -> None:
-    print("\n=== Завдання 7: Два d6 — Монте-Карло ===")
+    print("\nЗавдання 7: Два d6 — Монте-Карло")
     trials = ask_int("Кількість кидків", default=100_000, min_val=1)
     seed_s = ask("Seed (порожньо — без фіксації)", "")
     seed = int(seed_s) if seed_s.strip() else None
@@ -293,22 +282,20 @@ def run_task7() -> None:
         if outfile:
             print(f"✅ Збережено: {outfile}")
 
-
-# ----------- Menu -----------
+#Menu
 
 def menu() -> None:
-    print("""
-================ GOIT Final Project ================
-  1) Однозв’язний список (reverse / merge-sort / merge-two-sorted)
-  2) Дерево Піфагора (PNG/показ)
-  3) Дейкстра (heap) — демо-граф
-  4) Візуалізація бінарної купи
-  5) Візуалізація обходів BFS/DFS
-  6) Їжа: greedy vs DP
-  7) Два d6: Монте-Карло
-  0) Вихід
-====================================================
-""")
+    print(
+#GOIT Final Project
+#  1) Однозв’язний список (reverse / merge-sort / merge-two-sorted)
+#  2) Дерево Піфагора (PNG/показ)
+#  3) Дейкстра (heap) — демо-граф
+#  4) Візуалізація бінарної купи
+#  5) Візуалізація обходів BFS/DFS
+#  6) Їжа: greedy vs DP
+#  7) Два d6: Монте-Карло
+#  0) Вихід
+)
     while True:
         choice = ask("Обери пункт", "1")
         if choice == "1":
@@ -330,9 +317,7 @@ def menu() -> None:
             return
         else:
             print("  Невідомий пункт. Обери 0..7")
-
-        print("\n--- Готово. Ще щось? ---")
-
+        print("\nГотово. Ще щось?")
 
 if __name__ == "__main__":
     try:
